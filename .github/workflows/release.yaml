@@ -10,44 +10,43 @@ jobs:
     name: Release
     permissions:
       contents: write
-    build:
-      strategy:
-        matrix:
-          os: [ubuntu-latest, windows-latest, macos-latest]
-      runs-on: ${{ matrix.os }}
-      steps:
-        - name: Setup Go
-          uses: actions/setup-go@v2
-          with:
-            go-version: ${{ env.GO_VERSION }}
-        - name: Checkout code
-          uses: actions/checkout@v2
-        - uses: actions/cache@v2
-          with:
-            path: ~/go/pkg/mod
-            key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-            restore-keys: |
-              ${{ runner.os }}-go-
-        - name: Build binary (Unix)
-          if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
-          run: CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o kube-lineage ./cmd/kube-lineage
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Build binary (Unix)
+        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
+        run: CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o kube-lineage ./cmd/kube-lineage
 
-        - name: Build binary (Windows)
-          if: matrix.os == 'windows-latest'
-          run: CGO_ENABLED=0 GOOS=windows go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o kube-lineage.exe ./cmd/kube-lineage
+      - name: Build binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: CGO_ENABLED=0 GOOS=windows go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o kube-lineage.exe ./cmd/kube-lineage
 
-        - name: Zip the application (Unix)
-          if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
-          run: |
-            zip -r kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip kube-lineage
+      - name: Zip the application (Unix)
+        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
+        run: |
+          zip -r kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip kube-lineage
 
-        - name: Zip the application (Windows)
-          if: matrix.os == 'windows-latest'
-          run: |
-            Compress-Archive -Path kube-lineage.exe -DestinationPath kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip -Force
+      - name: Zip the application (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Compress-Archive -Path kube-lineage.exe -DestinationPath kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip -Force
 
-        - name: Upload Release Asset
-          uses: actions/upload-artifact@v2
-          with:
-            path: ./kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
-            name: kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
+      - name: Upload Release Asset
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
+          name: kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
