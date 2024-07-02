@@ -3,9 +3,8 @@
 # version for plugin "lineage" in krew-index.
 name: release
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  release:
+    types: [created]
 env:
   GO_VERSION: "1.22.4"
 jobs:
@@ -51,5 +50,7 @@ jobs:
       - name: Upload Release Asset
         uses: actions/upload-artifact@v2
         with:
-          path: ./kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
-          name: kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
+          asset_name: kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
+          asset_content_type: application/octet-stream
