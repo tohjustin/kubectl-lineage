@@ -49,6 +49,8 @@ jobs:
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }} 
           asset_path: ./kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
