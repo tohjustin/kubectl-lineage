@@ -11,7 +11,7 @@ env:
 jobs:
   lint:
     name: Run linter
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -29,7 +29,7 @@ jobs:
         run: make lint
   test:
     name: Run tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -47,7 +47,7 @@ jobs:
         run: make test
   release:
     name: Release
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
@@ -63,10 +63,3 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Release
-        run: make release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          KREW_GITHUB_TOKEN: ${{ secrets.KREW_GITHUB_TOKEN }}
-      - name: Update new version for plugin "lineage" in krew-index
-        uses: rajatjindal/krew-release-bot@v0.0.40
