@@ -20,7 +20,7 @@ env:
 jobs:
   lint:
     name: Run linter
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -38,7 +38,7 @@ jobs:
         run: make lint
   test:
     name: Run tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -59,7 +59,7 @@ jobs:
     needs:
       - lint
       - test
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
