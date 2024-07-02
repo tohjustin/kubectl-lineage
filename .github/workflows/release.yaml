@@ -30,8 +30,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Build binary (Unix)
-        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
         run: CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o kube-lineage ./cmd/kube-lineage
+
+      - name: Build binary (Arm)
+        if: matrix.os == 'macos-latest'
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o kube-lineage ./cmd/kube-lineage
 
       - name: Build binary (Windows)
         if: matrix.os == 'windows-latest'
