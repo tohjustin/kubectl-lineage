@@ -2,7 +2,10 @@
 # It runs tests to validate that the code is working before publishing a new
 # version for plugin "lineage" in krew-index.
 name: release
-on: [push]
+on:
+  push:
+    tags:
+      - 'v*.*.*'
 env:
   GO_VERSION: "1.22.4"
 jobs:
@@ -12,7 +15,7 @@ jobs:
       contents: write
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Go
