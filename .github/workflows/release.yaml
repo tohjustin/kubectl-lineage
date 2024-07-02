@@ -3,17 +3,19 @@
 # version for plugin "lineage" in krew-index.
 name: release
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  release:
+    types: [created]
 env:
   GO_VERSION: "1.22.4"
 jobs:
   release:
     name: Release
-    runs-on: ubuntu-latest
     permissions:
       contents: write
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -27,28 +29,30 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Build binary
+      - name: Build binary (Unix)
+        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
         run: CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o kube-lineage ./cmd/kube-lineage
-      - name: Upload binary to release
-        uses: actions/upload-artifact@v3
-        with:
-          name: kube-lineage
-          path: kube-lineage
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
+
+      - name: Build binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: CGO_ENABLED=0 GOOS=windows go build -a -tags netgo -ldflags '-w -extldflags "-static"' -o kube-lineage.exe ./cmd/kube-lineage
+
+      - name: Zip the application (Unix)
+        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
+        run: |
+          zip -r kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip kube-lineage
+
+      - name: Zip the application (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Compress-Archive -Path kube-lineage.exe -DestinationPath kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip -Force
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-      - name: Upload to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./kube-lineage
-          asset_name: kube-lineage
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
+          asset_name: kube-lineage-${{ matrix.os }}-${{ github.ref_name }}.zip
           asset_content_type: application/octet-stream
