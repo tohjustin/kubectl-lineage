@@ -3,8 +3,12 @@
 # version for plugin "lineage" in krew-index.
 name: release
 on:
+  push:
+    tags:
+      - "v*" # Trigger on tags that start with 'v', e.g., v1.0.0
   release:
-    types: [created]
+    types: [created] # Trigger when a GitHub Release is created
+  workflow_dispatch: # Allow manual triggering
 env:
   GO_VERSION: "1.22.4"
 jobs:
